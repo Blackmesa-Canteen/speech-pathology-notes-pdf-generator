@@ -26,6 +26,7 @@ dist-ssr
 # Env files - this app has no backend/secrets, but never commit these if they appear
 .env
 .env.*
+!.env.example
 
 # Local-only reference material (not part of the app, never published)
 /reference/
