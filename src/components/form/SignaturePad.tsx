@@ -20,21 +20,27 @@ export function SignaturePad({ value, onChange, ...rest }: SignaturePadProps) {
     if (!container || !pad) return
     const canvas = pad.getCanvas()
     const ratio = Math.max(window.devicePixelRatio || 1, 1)
-    const wasEmpty = pad.isEmpty()
 
     canvas.width = container.clientWidth * ratio
     canvas.height = container.clientHeight * ratio
     canvas.getContext('2d')?.scale(ratio, ratio)
+    // The width/height assignment above always wipes the canvas pixels —
+    // clear() just syncs signature_pad's own bookkeeping to match.
+    pad.clear()
 
-    // Resizing clears the drawing surface; only wipe our stored value if the
-    // pad was already empty, otherwise leave the last committed signature.
-    if (wasEmpty) {
-      pad.clear()
+    // Redraw whatever signature we're supposed to have (freshly drawn,
+    // restored from a saved draft, or just loaded from an imported PDF) —
+    // the canvas is always blank at this point, so this is never wasted.
+    if (value) {
+      pad.fromDataURL(value)
     }
-  }, [])
+  }, [value])
 
   React.useEffect(() => {
-    resizeCanvas()
+    // Don't also call resizeCanvas() here directly: ResizeObserver already
+    // invokes its callback once immediately on observe(), in every modern
+    // browser. Calling it twice raced two async fromDataURL() image loads
+    // against each other and could leave the canvas blank.
     const observer = new ResizeObserver(resizeCanvas)
     if (containerRef.current) observer.observe(containerRef.current)
     return () => observer.disconnect()
