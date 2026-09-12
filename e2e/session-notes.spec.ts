@@ -13,10 +13,15 @@ async function fillEssentialFields(page: Page) {
   await page.getByLabel('Start time').fill('09:30')
   await page.getByLabel('Finish time').fill('10:15')
 
-  const participantsInput = page.getByLabel('Present participants')
-  await participantsInput.click()
-  await participantsInput.fill('Mother')
+  // Child's first/last name (filled above) auto-adds an "Ava Smith (Child)"
+  // participant; this adds a second one via the role/name add-row.
+  await page.getByRole('button', { name: 'Add participant' }).click()
+  const roleInput = page.getByLabel('Participant role')
+  await roleInput.click()
+  await roleInput.fill('Mother')
   await page.locator('[data-slot="command-item"]').filter({ hasText: 'Mother' }).first().click()
+  await page.getByLabel('Participant name').fill('Jane Smith')
+  await page.getByRole('button', { name: 'Confirm add participant' }).click()
 
   const visitTypeInput = page.getByLabel('Type of visit')
   await visitTypeInput.click()
@@ -43,6 +48,20 @@ test('shows validation errors when submitting an empty form', async ({ page }) =
   await page.getByRole('button', { name: /Generate & Download PDF/ }).click()
   await expect(page.getByText('Signature is required')).toBeVisible()
   await expect(page.getByText('Add at least one participant')).toBeVisible()
+})
+
+test('auto-adds the child as a participant, and respects removing it', async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel("Child's first name").fill('Ava')
+  await page.getByLabel("Child's surname").fill('Smith')
+  await expect(page.getByText('Ava Smith (Child)')).toBeVisible()
+
+  await page.getByRole('button', { name: /Remove Ava Smith/ }).click()
+  await expect(page.getByText('Ava Smith (Child)')).toHaveCount(0)
+
+  // Further edits to the child's name shouldn't resurrect a dismissed entry.
+  await page.getByLabel("Child's surname").fill('Smithson')
+  await expect(page.getByText('Ava Smithson (Child)')).toHaveCount(0)
 })
 
 test('fills the essential fields and downloads a PDF', async ({ page }) => {
@@ -78,5 +97,6 @@ test('re-imports a previously generated PDF to prefill the form', async ({ page 
   await expect(page.getByLabel("Child's first name")).toHaveValue('Ava')
   await expect(page.getByLabel("Child's surname")).toHaveValue('Smith')
   await expect(page.getByLabel('Clinician email')).toHaveValue('jane@example.com')
-  await expect(page.getByText('Mother', { exact: true })).toBeVisible()
+  await expect(page.getByText('Jane Smith (Mother)')).toBeVisible()
+  await expect(page.getByText('Ava Smith (Child)')).toBeVisible()
 })
