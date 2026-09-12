@@ -1,15 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
-test('shows validation errors when submitting an empty form', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: /Generate & Download PDF/ }).click()
-  await expect(page.getByText('Signature is required')).toBeVisible()
-  await expect(page.getByText('Add at least one participant')).toBeVisible()
-})
-
-test('fills the essential fields and downloads a PDF', async ({ page }) => {
-  await page.goto('/')
-
+async function fillEssentialFields(page: Page) {
   await page.getByLabel("Child's first name").fill('Ava')
   await page.getByLabel("Child's surname").fill('Smith')
 
@@ -45,10 +36,47 @@ test('fills the essential fields and downloads a PDF', async ({ page }) => {
   await page.mouse.up()
 
   await page.getByLabel('Clinician email').fill('jane@example.com')
+}
+
+test('shows validation errors when submitting an empty form', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /Generate & Download PDF/ }).click()
+  await expect(page.getByText('Signature is required')).toBeVisible()
+  await expect(page.getByText('Add at least one participant')).toBeVisible()
+})
+
+test('fills the essential fields and downloads a PDF', async ({ page }) => {
+  await page.goto('/')
+  await fillEssentialFields(page)
 
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: /Generate & Download PDF/ }).click()
   const download = await downloadPromise
 
   expect(download.suggestedFilename()).toMatch(/^SessionNotes_Smith_Ava_\d{4}-\d{2}-\d{2}\.pdf$/)
+})
+
+test('re-imports a previously generated PDF to prefill the form', async ({ page }) => {
+  await page.goto('/')
+  await fillEssentialFields(page)
+
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /Generate & Download PDF/ }).click()
+  const download = await downloadPromise
+  const pdfPath = await download.path()
+  if (!pdfPath) throw new Error('downloaded PDF has no local path')
+
+  // Clear the autosaved draft first — otherwise the next page load would
+  // already show these same values from the draft, and the test wouldn't
+  // actually prove the *import* is what prefilled the form.
+  await page.evaluate(() => localStorage.clear())
+  await page.goto('/')
+  await expect(page.getByLabel("Child's first name")).toHaveValue('')
+
+  await page.locator('input[type="file"]').setInputFiles(pdfPath)
+
+  await expect(page.getByLabel("Child's first name")).toHaveValue('Ava')
+  await expect(page.getByLabel("Child's surname")).toHaveValue('Smith')
+  await expect(page.getByLabel('Clinician email')).toHaveValue('jane@example.com')
+  await expect(page.getByText('Mother', { exact: true })).toBeVisible()
 })
