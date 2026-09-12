@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 import { AutoGrowTextarea } from '@/components/form/AutoGrowTextarea'
 import { DatePickerField } from '@/components/form/DatePickerField'
 import { ImportPdfButton } from '@/components/form/ImportPdfButton'
-import { PresetCombobox, PresetTagInput } from '@/components/form/PresetCombobox'
+import { ParticipantsField } from '@/components/form/ParticipantsField'
+import { PresetCombobox } from '@/components/form/PresetCombobox'
 import { SignaturePad } from '@/components/form/SignaturePad'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,25 +24,64 @@ import { clearDraft, loadDraft, saveDraft } from '@/lib/draftStorage'
 import { downloadBlob } from '@/lib/downloadBlob'
 import { buildSessionNotesFilename } from '@/lib/filename'
 import {
+  type Participant,
   type SessionNotesFormValues,
   sessionNotesDefaultValues,
   sessionNotesSchema,
 } from '@/schemas/sessionNotesSchema'
 
+const CHILD_ROLE = 'Child'
+
+/**
+ * Whether the auto-added "child" participant should stay suppressed: true
+ * only when the child's name is already known but no Child-role entry is
+ * present, i.e. someone deliberately removed it (rather than it just never
+ * having been added yet on a blank form).
+ */
+function computeChildDismissed(values: Partial<SessionNotesFormValues>) {
+  const hasChildName = Boolean(values.childFirstName?.trim() || values.childSurname?.trim())
+  const hasChildParticipant = values.presentParticipants?.some((p) => p.role === CHILD_ROLE) ?? false
+  return hasChildName && !hasChildParticipant
+}
+
 export function SessionNotesForm() {
   const [status, setStatus] = React.useState<'idle' | 'generating' | 'success' | 'error'>('idle')
+  const initialValues = React.useMemo(() => ({ ...sessionNotesDefaultValues, ...loadDraft() }), [])
+  const [childDismissed, setChildDismissed] = React.useState(() => computeChildDismissed(initialValues))
 
   const form = useForm<SessionNotesFormValues>({
     resolver: zodResolver(sessionNotesSchema),
-    defaultValues: { ...sessionNotesDefaultValues, ...loadDraft() },
+    defaultValues: initialValues,
     mode: 'onBlur',
   })
+
+  const childFirstName = useWatch({ control: form.control, name: 'childFirstName' })
+  const childSurname = useWatch({ control: form.control, name: 'childSurname' })
+
+  React.useEffect(() => {
+    if (childDismissed) return
+    const childName = `${childFirstName} ${childSurname}`.trim()
+    if (!childName) return
+
+    const current = form.getValues('presentParticipants')
+    const index = current.findIndex((p) => p.role === CHILD_ROLE)
+    if (index === -1) {
+      form.setValue('presentParticipants', [...current, { role: CHILD_ROLE, name: childName }])
+    } else if (current[index].name !== childName) {
+      const next = [...current]
+      next[index] = { ...next[index], name: childName }
+      form.setValue('presentParticipants', next)
+    }
+  }, [childFirstName, childSurname, childDismissed, form])
 
   React.useEffect(() => {
     const timeout = { current: undefined as ReturnType<typeof setTimeout> | undefined }
     const unsubscribe = form.watch((values) => {
       clearTimeout(timeout.current)
-      timeout.current = setTimeout(() => saveDraft(values), 400)
+      // form.watch() types its callback's values as deeply partial (nested
+      // array items can be partial too); saveDraft only needs a shallow
+      // Partial and handles missing/malformed data as best-effort anyway.
+      timeout.current = setTimeout(() => saveDraft(values as Partial<SessionNotesFormValues>), 400)
     })
     return () => {
       clearTimeout(timeout.current)
@@ -51,6 +91,7 @@ export function SessionNotesForm() {
 
   const handleImport = (values: SessionNotesFormValues) => {
     form.reset(values)
+    setChildDismissed(computeChildDismissed(values))
     setStatus('idle')
   }
 
@@ -181,12 +222,16 @@ export function SessionNotesForm() {
                 <FormItem>
                   <FormLabel>Present participants</FormLabel>
                   <FormControl>
-                    <PresetTagInput
+                    <ParticipantsField
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(next: Participant[]) => {
+                        if (next.length < field.value.length && !next.some((p) => p.role === CHILD_ROLE)) {
+                          setChildDismissed(true)
+                        }
+                        field.onChange(next)
+                      }}
                       onBlur={field.onBlur}
-                      options={presets.presentParticipants}
-                      placeholder="Type to add or pick from list…"
+                      roleOptions={presets.participantRoles}
                       aria-invalid={!!form.formState.errors.presentParticipants}
                     />
                   </FormControl>

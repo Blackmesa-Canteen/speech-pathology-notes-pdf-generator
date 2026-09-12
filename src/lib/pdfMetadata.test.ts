@@ -9,7 +9,7 @@ const validData: SessionNotesFormValues = {
   sessionDate: new Date('2026-09-15'),
   startTime: '09:30',
   finishTime: '10:15',
-  presentParticipants: ['Mother'],
+  presentParticipants: [{ role: 'Mother', name: 'Jane Smith' }],
   typeOfVisit: 'Therapy session',
   sessionGoals: 'Improve /s/ sounds.',
   notes: 'Some notes.',
@@ -29,7 +29,7 @@ describe('buildPdfMetadataKeywords / parsePdfMetadataKeywords', () => {
     if (result.ok) {
       expect(result.data.childFirstName).toBe('Ava')
       expect(result.data.sessionDate).toEqual(validData.sessionDate)
-      expect(result.data.presentParticipants).toEqual(['Mother'])
+      expect(result.data.presentParticipants).toEqual([{ role: 'Mother', name: 'Jane Smith' }])
     }
   })
 
@@ -67,7 +67,7 @@ describe('buildPdfMetadataKeywords / parsePdfMetadataKeywords', () => {
     const result = parsePdfMetadataKeywords(
       JSON.stringify({
         app: 'speech-pathology-notes-pdf-generator',
-        version: 1,
+        version: 2,
         data: { childFirstName: '' }, // missing everything else required
       }),
     )

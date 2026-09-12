@@ -8,7 +8,7 @@ const validData = {
   sessionDate: new Date('2026-09-15'),
   startTime: '09:30',
   finishTime: '10:15',
-  presentParticipants: ['Mother'],
+  presentParticipants: [{ role: 'Mother', name: 'Jane Smith' }],
   typeOfVisit: 'Therapy session',
   sessionGoals: 'Improve /s/ sounds.',
   notes: '',
@@ -51,6 +51,19 @@ describe('sessionNotesSchema', () => {
   it('requires at least one present participant', () => {
     const result = sessionNotesSchema.safeParse({ ...validData, presentParticipants: [] })
     expect(result.success).toBe(false)
+  })
+
+  it('rejects a participant with a blank role or name', () => {
+    const blankRole = sessionNotesSchema.safeParse({
+      ...validData,
+      presentParticipants: [{ role: '', name: 'Jane Smith' }],
+    })
+    const blankName = sessionNotesSchema.safeParse({
+      ...validData,
+      presentParticipants: [{ role: 'Mother', name: '' }],
+    })
+    expect(blankRole.success).toBe(false)
+    expect(blankName.success).toBe(false)
   })
 
   it('rejects an invalid clinician email', () => {

@@ -6,7 +6,10 @@ import {
 import { type SessionNotesFormValues, sessionNotesSchema } from '@/schemas/sessionNotesSchema'
 
 const APP_ID = 'speech-pathology-notes-pdf-generator'
-const CURRENT_VERSION = 1
+// Bumped from 1 to 2 when presentParticipants changed from string[] to a
+// { role, name }[] shape — older PDFs are correctly rejected as unreadable
+// rather than misparsed.
+const CURRENT_VERSION = 2
 
 type PdfMetadataEnvelope = {
   app: string

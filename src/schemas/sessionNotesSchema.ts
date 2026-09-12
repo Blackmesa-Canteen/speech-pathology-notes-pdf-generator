@@ -5,13 +5,20 @@ const requiredText = (label: string) => z.string().trim().min(1, `${label} is re
 const longText = (label: string, max = 10_000) =>
   z.string().trim().max(max, `${label} is too long (max ${max} characters)`)
 
+export const participantSchema = z.object({
+  role: requiredText('Role'),
+  name: requiredText('Name'),
+})
+
+export type Participant = z.infer<typeof participantSchema>
+
 export const sessionNotesSchema = z.object({
   childFirstName: requiredText("Child's first name"),
   childSurname: requiredText("Child's surname"),
   sessionDate: z.date({ required_error: 'Session date is required' }),
   startTime: requiredText('Start time'),
   finishTime: requiredText('Finish time'),
-  presentParticipants: z.array(z.string().trim().min(1)).min(1, 'Add at least one participant'),
+  presentParticipants: z.array(participantSchema).min(1, 'Add at least one participant'),
   typeOfVisit: requiredText('Type of visit'),
   sessionGoals: longText('Session goals').min(1, 'Session goals are required'),
   notes: longText('Notes'),

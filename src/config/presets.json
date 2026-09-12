@@ -1,10 +1,10 @@
 {
-  "presentParticipants": [
+  "participantRoles": [
     "Mother",
     "Father",
     "Teacher",
     "Support worker",
-    "Child (no other participants)",
+    "Speech Pathologist",
     "Grandparent",
     "Interpreter"
   ],

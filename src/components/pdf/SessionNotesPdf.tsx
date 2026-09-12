@@ -118,7 +118,9 @@ export function SessionNotesPdf({ data }: { data: SessionNotesFormValues }) {
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Present</Text>
-            <Text style={styles.metaValue}>{data.presentParticipants.join(', ')}</Text>
+            <Text style={styles.metaValue}>
+              {data.presentParticipants.map((p) => `${p.name} (${p.role})`).join(', ')}
+            </Text>
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Type of visit</Text>
