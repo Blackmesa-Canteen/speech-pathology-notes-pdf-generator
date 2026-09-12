@@ -1,4 +1,4 @@
-# speech-pathology-notes
+# speech-pathology-notes-pdf-generator
 
 A small web app that replaces a paper "Speech Pathology Session Notes"
 template: fill in a form for a session, click a button, and download a

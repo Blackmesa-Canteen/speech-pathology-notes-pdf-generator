@@ -1,6 +1,6 @@
 import type { SessionNotesFormValues } from '@/schemas/sessionNotesSchema'
 
-const DRAFT_KEY = 'speech-pathology-notes:draft'
+const DRAFT_KEY = 'speech-pathology-notes-pdf-generator:draft'
 
 type SerializedDraft = Omit<Partial<SessionNotesFormValues>, 'sessionDate' | 'nextVisitDate'> & {
   sessionDate?: string
