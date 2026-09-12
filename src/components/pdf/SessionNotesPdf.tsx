@@ -2,6 +2,7 @@ import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/render
 import { format } from 'date-fns'
 
 import { pdfTheme } from '@/components/pdf/pdfTheme'
+import { buildPdfMetadataKeywords } from '@/lib/pdfMetadata'
 import type { SessionNotesFormValues } from '@/schemas/sessionNotesSchema'
 
 const styles = StyleSheet.create({
@@ -92,7 +93,10 @@ export function SessionNotesPdf({ data }: { data: SessionNotesFormValues }) {
   const nextVisitLabel = data.nextVisitDate ? format(data.nextVisitDate, 'd MMMM yyyy') : ''
 
   return (
-    <Document title={`Session Notes - ${data.childFirstName} ${data.childSurname} - ${dateLabel}`}>
+    <Document
+      title={`Session Notes - ${data.childFirstName} ${data.childSurname} - ${dateLabel}`}
+      keywords={buildPdfMetadataKeywords(data)}
+    >
       <Page size="A4" style={styles.page}>
         <View style={styles.header} fixed>
           <Text style={styles.title}>Speech Pathology Session Notes</Text>
