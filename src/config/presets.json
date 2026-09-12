@@ -1,0 +1,18 @@
+{
+  "presentParticipants": [
+    "Mother",
+    "Father",
+    "Teacher",
+    "Support worker",
+    "Child (no other participants)",
+    "Grandparent",
+    "Interpreter"
+  ],
+  "typeOfVisit": [
+    "Initial assessment",
+    "Therapy session",
+    "Review",
+    "Telehealth",
+    "Home visit"
+  ]
+}
