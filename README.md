@@ -8,7 +8,10 @@ for editing.
 
 **Privacy:** everything happens in your browser. There is no backend and no
 server-side storage — form data, the signature, and PDF generation never
-leave the device you're using.
+leave the device you're using. The one exception: loading the page makes a
+network request to Cloudflare's Turnstile service (see below) to show a
+human-verification check before the form appears; no form data is involved
+in that request.
 
 **AI disclaimer:** this project's code, tests, CI setup, and docs were
 written largely with AI assistance. Review before relying on it, especially
@@ -22,7 +25,8 @@ for anything privacy- or security-sensitive.
 - [`@react-pdf/renderer`](https://react-pdf.org/) to generate the PDF client-side
 - `react-signature-canvas` for the drawn signature
 - [`pdf-lib`](https://pdf-lib.js.org/) (lazy-loaded) to read a previously-generated PDF back in
-- Deployed as a static site on Cloudflare Pages — no Worker/Function needed
+- [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) gates the form behind a human-verification check
+- Deployed as a static site on Cloudflare — no custom Worker script or backend needed
 
 ## Getting started
 
@@ -67,11 +71,32 @@ silently failing.
 
 ## Deployment
 
-This repo is meant to be connected directly to
-[Cloudflare Pages](https://developers.cloudflare.com/pages/) via its Git
-integration: build command `npm run build`, output directory `dist`. Every
-push gets a production deploy on `main` and a preview deploy on pull
-requests.
+This repo is connected directly to Cloudflare via its dashboard Git
+integration: build command `npm run build`, output directory `dist`. It's
+deployed as a Cloudflare Worker serving static assets (no custom Worker
+script or server-side code) — Cloudflare's current default for new Git-connected
+projects. Every push gets a production deploy on `main` and a preview
+deploy on pull requests.
+
+### Bot protection (Turnstile)
+
+The form is gated behind a [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/)
+check (see `src/components/TurnstileGate.tsx`). This is a **client-side-only**
+check — there's no backend to verify the token server-side, so it deters
+casual scripted bots/scrapers but isn't a hard security boundary against a
+determined attacker running their own headless browser.
+
+Without any configuration, the app falls back to Cloudflare's official
+"always passes" test site key (works on any hostname, including localhost
+and PR previews). To use a real widget in production:
+
+1. Create a Turnstile widget at Cloudflare dashboard → Turnstile, restricted
+   to your real hostname (Widget Mode: "Managed" is a good default).
+2. Copy its **Site key** (not the secret key — that's only needed for
+   server-side verification, which this app doesn't do).
+3. Set it as a build environment variable named `VITE_TURNSTILE_SITE_KEY` in
+   the Cloudflare Worker's dashboard settings (Settings → Variables). Not
+   committed to the repo — see `.env.example` for the local-dev equivalent.
 
 ## Repository security setup
 
