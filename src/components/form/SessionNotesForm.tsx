@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 
 import { AutoGrowTextarea } from '@/components/form/AutoGrowTextarea'
 import { DatePickerField } from '@/components/form/DatePickerField'
+import { ImportPdfButton } from '@/components/form/ImportPdfButton'
 import { PresetCombobox, PresetTagInput } from '@/components/form/PresetCombobox'
 import { SignaturePad } from '@/components/form/SignaturePad'
 import { Button } from '@/components/ui/button'
@@ -48,6 +49,11 @@ export function SessionNotesForm() {
     }
   }, [form])
 
+  const handleImport = (values: SessionNotesFormValues) => {
+    form.reset(values)
+    setStatus('idle')
+  }
+
   const onSubmit = async (values: SessionNotesFormValues) => {
     setStatus('generating')
     try {
@@ -76,6 +82,8 @@ export function SessionNotesForm() {
             browser.
           </p>
         </div>
+
+        <ImportPdfButton onImport={handleImport} />
 
         <Card>
           <CardHeader>
