@@ -43,6 +43,18 @@ async function fillEssentialFields(page: Page) {
   await page.getByLabel('Clinician email').fill('jane@example.com')
 }
 
+test('shows a Turnstile gate before the form, then reveals the form once verified', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText("Verify you're human")).toBeVisible()
+  await expect(page.getByLabel("Child's first name")).toHaveCount(0)
+
+  // The dev/test build always uses Cloudflare's "always passes" test key
+  // (see src/lib/turnstile.ts), so this resolves automatically with no
+  // interaction needed.
+  await expect(page.getByLabel("Child's first name")).toBeVisible()
+  await expect(page.getByText("Verify you're human")).toHaveCount(0)
+})
+
 test('shows validation errors when submitting an empty form', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: /Generate & Download PDF/ }).click()
