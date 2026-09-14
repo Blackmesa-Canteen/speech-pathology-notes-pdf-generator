@@ -6,12 +6,15 @@ clean, formally-formatted PDF. Spotted a mistake later, or need to update a
 past session? Upload that same PDF back in and it prefills the whole form
 for editing.
 
-**Privacy:** everything happens in your browser. There is no backend and no
-server-side storage — form data, the signature, and PDF generation never
-leave the device you're using. The one exception: loading the page makes a
-network request to Cloudflare's Turnstile service (see below) to show a
-human-verification check before the form appears; no form data is involved
-in that request.
+**Privacy:** your notes never leave your computer. Everything — typing, the
+signature, and building the PDF — happens right in your browser, with
+nothing sent to a server. The only thing that talks to the internet is a
+quick "prove you're not a robot" check when the page loads, and it doesn't
+see anything you type. Your data is only ever stored on your own device —
+in the PDF file itself.
+
+**Feedback / requests:** admin@996workers.org — this is a free tool, and
+feedback (bugs, feature ideas, anything) is welcome.
 
 **AI disclaimer:** this project's code, tests, CI setup, and docs were
 written largely with AI assistance. Review before relying on it, especially

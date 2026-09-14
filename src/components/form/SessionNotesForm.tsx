@@ -119,8 +119,22 @@ export function SessionNotesForm() {
         <div>
           <h1 className="text-2xl font-semibold">Speech Pathology Session Notes</h1>
           <p className="text-sm text-muted-foreground">
-            Fill in the details below, then generate the PDF. Nothing you type here leaves your
-            browser.
+            A free tool for speech pathologists to write up session notes and turn them into a
+            clean PDF. Made for my wife&apos;s caseload, shared in case it helps other clinicians
+            — and the kids they work with.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your notes never leave your computer. Everything — typing, the signature, and
+            building the PDF — happens right in your browser, with nothing sent to a server. The
+            only thing that talks to the internet is a quick &quot;prove you&apos;re not a
+            robot&quot; check when the page loads, and it doesn&apos;t see anything you type.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Feedback or feature requests? Reach out at{' '}
+            <a href="mailto:admin@996workers.org" className="underline">
+              admin@996workers.org
+            </a>
+            .
           </p>
         </div>
 
