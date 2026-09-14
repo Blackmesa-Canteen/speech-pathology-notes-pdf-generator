@@ -15,7 +15,7 @@ export type Participant = z.infer<typeof participantSchema>
 export const sessionNotesSchema = z.object({
   childFirstName: requiredText("Child's first name"),
   childSurname: requiredText("Child's surname"),
-  sessionDate: z.date({ required_error: 'Session date is required' }),
+  sessionDate: z.date({ error: 'Session date is required' }),
   startTime: requiredText('Start time'),
   finishTime: requiredText('Finish time'),
   presentParticipants: z.array(participantSchema).min(1, 'Add at least one participant'),
