@@ -72,11 +72,14 @@ silently failing.
 ## Deployment
 
 This repo is connected directly to Cloudflare via its dashboard Git
-integration: build command `npm run build`, output directory `dist`. It's
-deployed as a Cloudflare Worker serving static assets (no custom Worker
-script or server-side code) — Cloudflare's current default for new Git-connected
-projects. Every push gets a production deploy on `main` and a preview
-deploy on pull requests.
+integration: build command `npm run build`. It's deployed as a Cloudflare
+Worker serving static assets (no custom Worker script or server-side code)
+— Cloudflare's current default for new Git-connected projects. The deploy
+step runs `npx wrangler versions upload`, which reads `wrangler.jsonc` at
+the repo root to find the built assets (`./dist`) and the Worker name —
+both must stay in sync with the dashboard project if either changes. Every
+push gets a production deploy on `main` and a preview deploy on pull
+requests.
 
 ### Bot protection (Turnstile)
 
